@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Editar PVP{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-800 mb-6">Editar PVP: <span class="text-blue-600">{{ pvp.nome_pvp }}</span></h2>
+
+<div class="bg-white p-8 rounded-lg shadow-md max-w-2xl mx-auto">
+    <form action="{{ url_for('admin.editar_pvp', cod=pvp.cod_pvp) }}" method="POST">
+        <div class="space-y-6">
+            <!-- Nome do PVP -->
+            <div>
+                <label for="nome_pvp" class="block text-sm font-medium text-gray-700 mb-1">Nome do PVP</label>
+                <input type="text" name="nome_pvp" id="nome_pvp" value="{{ pvp.nome_pvp }}" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+            </div>
+
+            <!-- Percentual -->
+            <div>
+                <label for="percentual" class="block text-sm font-medium text-gray-700 mb-1">Percentual (Ex: 1.25 para 25%)</label>
+                <input type="number" name="percentual" id="percentual" step="0.01" value="{{ pvp.percentual }}" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+            </div>
+
+            <!-- Tipo de PVP -->
+            <div>
+                <label for="tipo_pvp" class="block text-sm font-medium text-gray-700 mb-1">Tipo de PVP</label>
+                <select name="tipo_pvp" id="tipo_pvp" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <option value="categoria" {% if pvp.tipo_pvp == 'categoria' %}selected{% endif %}>Por Categoria</option>
+                    <option value="global" {% if pvp.tipo_pvp == 'global' %}selected{% endif %}>Global</option>
+                </select>
+            </div>
+            
+            <!-- Status Ativo -->
+            <div class="flex items-center">
+                <input type="checkbox" name="ativo" id="ativo" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" {% if pvp.ativo %}checked{% endif %}>
+                <label for="ativo" class="ml-2 block text-sm text-gray-900">PVP Ativo</label>
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="mt-8 flex justify-end space-x-4">
+            <a href="{{ url_for('admin.pvps') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                Cancelar
+            </a>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                Salvar Alterações
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

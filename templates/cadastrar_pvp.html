@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastrar Novo PVP{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-800 mb-6">Cadastrar Novo PVP</h2>
+
+<div class="bg-white p-8 rounded-lg shadow-md max-w-2xl mx-auto">
+    <form action="{{ url_for('admin.cadastrar_pvp') }}" method="POST">
+        <div class="space-y-6">
+            <!-- Nome do PVP -->
+            <div>
+                <label for="nome_pvp" class="block text-sm font-medium text-gray-700 mb-1">Nome do PVP</label>
+                <input type="text" name="nome_pvp" id="nome_pvp" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+            </div>
+
+            <!-- Percentual -->
+            <div>
+                <label for="percentual" class="block text-sm font-medium text-gray-700 mb-1">Percentual (Ex: 1.25 para 25%)</label>
+                <input type="number" name="percentual" id="percentual" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+            </div>
+
+            <!-- Tipo de PVP -->
+            <div>
+                <label for="tipo_pvp" class="block text-sm font-medium text-gray-700 mb-1">Tipo de PVP</label>
+                <select name="tipo_pvp" id="tipo_pvp" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <option value="categoria" selected>Por Categoria</option>
+                    <option value="global">Global</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="mt-8 flex justify-end space-x-4">
+            <a href="{{ url_for('admin.pvps') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                Cancelar
+            </a>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                Salvar PVP
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+/* Espaçamento para a barra de navegação superior fixa */
+body {
+    padding-top: 56px; /* Altura padrão da navbar do Bootstrap */
+    
+}
+
+/*
+ * Estilos da Sidebar
+ */
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100; /* Fica atrás da navbar, mas na frente do conteúdo */
+    padding: 56px 0 0; /* Espaçamento para a navbar no topo */
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+/* Estilos para a sidebar em telas médias ou maiores (desktop) */
+@media (min-width: 768px) {
+    /* Esconde o botão 'hambúrguer' no desktop */
+    .navbar-toggler {
+        display: none;
+    }
+
+    /* Garante que o conteúdo principal não fique embaixo da sidebar */
+    .col-md-9.ms-sm-auto, .col-lg-10.px-md-4 {
+        margin-left: 250px; /* Ajuste este valor se a largura da sidebar mudar */
+    }
+}
+
+/*
+ * Estilos dos links da Sidebar
+ */
+.sidebar .nav-link {
+    font-weight: 500;
+    color: #333;
+}
+
+.sidebar .nav-link .bi {
+    margin-right: 8px;
+    color: #999;
+}
+
+.sidebar .nav-link.active {
+    color: #0d6efd; /* Cor primária do Bootstrap */
+}
+
+.sidebar .nav-link:hover .bi,
+.sidebar .nav-link.active .bi {
+    color: inherit;
+}
+
+.sidebar-heading {
+    font-size: .75rem;
+    text-transform: uppercase;
+}
+
+/* Estilos para os cards de exemplo */
+.card .border-left-primary {
+    border-left: .25rem solid #4e73df!important;
+}
+
+.card .border-left-danger {
+    border-left: .25rem solid #e74a3b!important;
+}
+
+.text-gray-300 {
+    color: #dddfeb!important;
+}

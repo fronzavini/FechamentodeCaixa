@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema caixa{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: #d1d5db;
+            transition: background-color 0.2s, color 0.2s;
+            border-radius: 0.375rem;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: #374151;
+            color: #ffffff;
+        }
+        .sidebar-link i {
+            width: 1.5rem; /* 24px */
+            margin-right: 0.75rem; /* 12px */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        {% if session.usuario_id %}
+        <aside class="w-64 bg-gray-800 text-white p-4 space-y-4">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-white">Sistema Caixa</h1>
+            </div>
+            <nav class="space-y-2">
+                <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if 'dashboard' in request.path %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="" class="sidebar-link {% if 'produtos' in request.path %}active{% endif %}">
+                    <i class="fas fa-box-open"></i>
+                    <span>Produtos</span>
+                </a>
+                <a href="" class="sidebar-link {% if 'categorias' in request.path %}active{% endif %}">
+                    <i class="fas fa-tags"></i>
+                    <span>Categorias</span>
+                </a>
+                <a href="{{ url_for('admin.usuarios') }}" class="sidebar-link {% if 'usuarios' in request.path %}active{% endif %}">
+                    <i class="fas fa-tags"></i>
+                    <span>Usuarios</span>
+                </a>
+                <a href="{{ url_for('admin.pvps') }}" class="sidebar-link {% if 'usuarios' in request.path %}active{% endif %}">
+                    <i class="fas fa-tags"></i>
+                    <span>PVP</span>
+                </a>
+                <!-- Adicionar outros links aqui no futuro -->
+            </nav>
+        </aside>
+        {% endif %}
+
+        <!-- Conteúdo Principal -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header Superior -->
+            {% if session.usuario_id %}
+            <header class="bg-white shadow-md p-4 flex justify-end items-center">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-700">Olá, <strong>{{ session.usuario_nome }}</strong></span>
+                    <a href="{{ url_for('logout') }}" class="text-sm text-red-500 hover:text-red-700" title="Sair">
+                        <i class="fas fa-sign-out-alt fa-lg"></i>
+                    </a>
+                </div>
+            </header>
+            {% endif %}
+
+            <!-- Conteúdo da Página -->
+            <main class="flex-1 p-6">
+                <!-- Mensagens Flash -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="mb-4">
+                        {% for category, message in messages %}
+                            <div class="p-4 rounded-md {% if category == 'sucesso' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}" role="alert">
+                                <p>{{ message }}</p>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Bloco de Conteúdo -->
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+</body>
+</html>

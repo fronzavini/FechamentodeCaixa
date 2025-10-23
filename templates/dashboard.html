@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sistema de Vendas{% endblock %}
+
+{% block content %}
+    <h2 class="text-3xl font-bold text-gray-800 mb-6">Painel de Controle</h2>
+
+    <!-- Cartões de Resumo -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total de Produtos -->
+        <div class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
+            <div class="bg-blue-500 p-3 rounded-full">
+                <i class="fas fa-box-open text-white fa-2x"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Total de Produtos</h3>
+                <p class="text-3xl font-bold text-gray-800">{{ total_produtos }}</p>
+            </div>
+        </div>
+        <!-- Total de Categorias -->
+        <div class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
+            <div class="bg-green-500 p-3 rounded-full">
+                <i class="fas fa-tags text-white fa-2x"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Total de Categorias</h3>
+                <p class="text-3xl font-bold text-gray-800">{{ total_categorias }}</p>
+            </div>
+        </div>
+        <!-- Total de Vendas -->
+        <div class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
+            <div class="bg-yellow-500 p-3 rounded-full">
+                <i class="fas fa-shopping-cart text-white fa-2x"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Total de Vendas</h3>
+                <p class="text-3xl font-bold text-gray-800">{{ total_vendas }}</p>
+            </div>
+        </div>
+        <!-- Saldo do Caixa -->
+        <div class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
+            <div class="bg-indigo-500 p-3 rounded-full">
+                <i class="fas fa-wallet text-white fa-2x"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Saldo do Caixa</h3>
+                <p class="text-3xl font-bold text-gray-800">R$ {{ "%.2f"|format(saldo_caixa|float)|replace('.', ',') }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vendas Recentes -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Vendas Recentes</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600">ID Venda</th>
+                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600">Usuário</th>
+                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600">Total</th>
+                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600">Data</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    {% for venda in vendas_recentes %}
+                    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                        <td class="py-3 px-4">#{{ venda.cod_venda }}</td>
+                        <td class="py-3 px-4">{{ venda.nome_usuario }}</td>
+                        <td class="py-3 px-4">R$ {{ "%.2f"|format(venda.total|float)|replace('.', ',') }}</td>
+                        <td class="py-3 px-4">{{ venda.data_venda.strftime('%d/%m/%Y %H:%M') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="py-4 text-center text-gray-500">Nenhuma venda recente encontrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

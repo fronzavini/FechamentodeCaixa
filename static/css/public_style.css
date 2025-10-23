@@ -1,0 +1,56 @@
+/* Pequenos ajustes para o layout Album */
+
+/* Garante que as imagens dos cards não fiquem distorcidas */
+.card .card-img-top {
+    width: 100%;
+    height: 300px; /* Altura fixa para todos os cards */
+    object-fit: cover; /* A imagem cobre a área, cortando se necessário */
+}
+
+/* Deixa o rodapé um pouco mais escuro para contraste */
+footer {
+    background-color: #f8f9fa; /* Um cinza bem claro */
+}
+
+/* Estilos para a página de detalhes */
+.game-detail-img {
+    max-width: 100%;
+    border-radius: 0.25rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+
+/* Estilos para a secção principal (Hero Banner) da página inicial */
+.hero-banner {
+    position: relative; /* Necessário para o posicionamento da sobreposição */
+    background-image: url('https://invogames.s3.us-east-2.amazonaws.com/game_art_fundamentals_invogames_90601b6f89.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
+    background-size: cover;
+    background-position: center;
+    color: white; /* Define a cor do texto para branco para contrastar */
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+    border-radius: 0.5rem;
+    overflow: hidden; /* Garante que a sobreposição não vaze */
+}
+
+/* Cria uma sobreposição escura para melhorar a legibilidade do texto */
+.hero-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6); /* Sobreposição preta com 60% de opacidade */
+    z-index: 1;
+}
+
+/* Garante que o conteúdo (texto, botões) fique acima da sobreposição */
+.hero-banner .container {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-banner .lead {
+    color: #e9ecef; /* Um cinzento mais claro para o parágrafo */
+}

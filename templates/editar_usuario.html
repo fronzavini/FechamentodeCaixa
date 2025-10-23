@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Usuário{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-800 mb-6">Editar Usuário: <span class="text-blue-600">{{ usuario.nome_usuario }}</span></h2>
+
+<div class="bg-white p-8 rounded-lg shadow-md max-w-2xl mx-auto">
+    <form action="{{ url_for('admin.editar_usuario', cod=usuario.cod_usuario) }}" method="POST">
+        <div class="space-y-6">
+            <!-- Campos informativos -->
+            <div>
+                <p><strong>Username:</strong> {{ usuario.username_usuario }}</p>
+                <p><strong>Email:</strong> {{ usuario.email_usuario }}</p>
+            </div>
+            
+            <hr>
+
+            <!-- Tipo de Usuário -->
+            <div>
+                <label for="tipo_usuario" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Usuário</label>
+                <select name="tipo_usuario" id="tipo_usuario" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                    <option value="1" {% if usuario.tipo_usuario == 1 %}selected{% endif %}>Admin</option>
+                    <option value="2" {% if usuario.tipo_usuario == 2 %}selected{% endif %}>Usuário</option>
+                </select>
+            </div>
+
+            <!-- Status da Conta -->
+            <div class="flex items-center">
+                 <input type="checkbox" name="conta_ativa" id="conta_ativa" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" {% if usuario.conta_ativa %}checked{% endif %}>
+                 <label for="conta_ativa" class="ml-2 block text-sm font-medium text-gray-800">Conta Ativa</label>
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="mt-8 flex justify-end space-x-4">
+            <a href="{{ url_for('admin.usuarios') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                Cancelar
+            </a>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                Salvar Alterações
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

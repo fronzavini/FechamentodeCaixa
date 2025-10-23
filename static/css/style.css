@@ -1,0 +1,58 @@
+body {
+    background: linear-gradient(to right, #1e3c72, #2a5298);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.login-card {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+}
+.login-icon {
+    width: 80px;
+    height: 80px;
+    background: #2a5298;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.login-icon i {
+    font-size: 36px;
+    color: white;
+}
+.login-btn {
+    background-color: #2a5298;
+    color: white;
+}
+.login-btn:hover {
+    background-color: #1e3c72;
+}
+.forgot-link {
+    font-size: 0.9rem;
+    text-align: right;
+    display: block;
+}
+
+.sucesso {
+    background-color: #556B2F; /* Verde musgo */
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.erro {
+    background-color: #f44336;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
