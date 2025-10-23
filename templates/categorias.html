@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Categorias{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-3xl font-bold text-gray-800">Gerenciar Categorias de Produto</h2>
+    <a href="{{ url_for('admin.cadastrar_categoria') }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+        <i class="fas fa-plus mr-2"></i>Nova Categoria
+    </a>
+</div>
+
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <h3 class="text-xl font-semibold text-gray-800 mb-4">Lista de Categorias Cadastradas</h3>
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white">
+            <thead class="bg-gray-200">
+                <tr>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600">Nome da Categoria</th>
+                    <th class="text-center py-3 px-4 uppercase font-semibold text-sm text-gray-600">PVP Associado</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600">Descrição</th>
+                    <th class="text-center py-3 px-4 uppercase font-semibold text-sm text-gray-600">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700">
+                {% for categoria in categorias %}
+                <tr class="border-b border-gray-200 hover:bg-gray-100">
+                    <td class="py-3 px-4 font-medium">{{ categoria.nome_categoria }}</td>
+                    <td class="py-3 px-4 text-center">
+                        {% if categoria.nome_pvp %}
+                            {{ categoria.nome_pvp }} ({{ "%.2f"|format((categoria.percentual_pvp - 1) * 100) }}%)
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4">
+                        {% if categoria.descricao_categoria %}
+                            {{ categoria.descricao_categoria }}
+                        {% else %}
+                            <span class="text-gray-400 italic">Sem descrição</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <a href="{{ url_for('admin.editar_categoria', cod=categoria.cod_categoria) }}" class="text-blue-500 hover:text-blue-700 mx-2" title="Editar">
+                            <i class="fas fa-pencil-alt"></i>
+                        </a>
+                        <form action="{{ url_for('admin.excluir_categoria', cod=categoria.cod_categoria) }}" method="POST" class="inline-block" onsubmit="return confirm('Tem certeza que deseja excluir esta categoria?');">
+                            <button type="submit" class="text-red-500 hover:text-red-700 mx-2" title="Excluir">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="py-4 text-center text-gray-500">Nenhuma categoria cadastrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
