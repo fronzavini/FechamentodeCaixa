@@ -366,6 +366,114 @@ def excluir_pvp(cod):
         flash(f"Não foi possível excluir o PVP. Verifique se ele não está em uso por uma categoria. Erro: {err}", "erro")
     return redirect(url_for('admin.pvps'))
 
+# --- CRUD para Categorias ---
+@admin_bp.route('/categorias')
+@admin_required
+def categorias():
+    """ Lista todas as categorias de produtos. """
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT c.cod_categoria, c.nome_categoria, c.descricao_categoria, 
+               p.nome_pvp AS pvp_nome
+        FROM categoria_produto c
+        LEFT JOIN pvp p ON c.pvp_categoria = p.cod_pvp
+        ORDER BY c.nome_categoria ASC
+    """)
+    categorias = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template('categorias.html', categorias=categorias)
+
+
+@admin_bp.route('/categorias/cadastrar', methods=['GET', 'POST'])
+@admin_required
+def cadastrar_categoria():
+    """ Cadastra uma nova categoria de produto. """
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    # Busca PVPs ativos para o select
+    cursor.execute("SELECT cod_pvp, nome_pvp FROM pvp WHERE ativo = TRUE ORDER BY nome_pvp ASC")
+    pvps = cursor.fetchall()
+
+    if request.method == 'POST':
+        nome = request.form['nome_categoria']
+        descricao = request.form['descricao_categoria']
+        pvp_categoria = request.form['pvp_categoria'] or None
+
+        cursor.execute("""
+            INSERT INTO categoria_produto (nome_categoria, descricao_categoria, pvp_categoria)
+            VALUES (%s, %s, %s)
+        """, (nome, descricao, pvp_categoria))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        flash("Categoria cadastrada com sucesso!", "sucesso")
+        return redirect(url_for('admin.categorias'))
+
+    cursor.close()
+    conn.close()
+    return render_template('cadastrar_categoria.html', pvps=pvps)
+
+
+@admin_bp.route('/categorias/editar/<int:cod>', methods=['GET', 'POST'])
+@admin_required
+def editar_categoria(cod):
+    """ Edita uma categoria existente. """
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    # Busca a categoria e os PVPs
+    cursor.execute("SELECT * FROM categoria_produto WHERE cod_categoria = %s", (cod,))
+    categoria = cursor.fetchone()
+    cursor.execute("SELECT cod_pvp, nome_pvp FROM pvp WHERE ativo = TRUE ORDER BY nome_pvp ASC")
+    pvps = cursor.fetchall()
+
+    if not categoria:
+        flash("Categoria não encontrada.", "erro")
+        cursor.close()
+        conn.close()
+        return redirect(url_for('admin.categorias'))
+
+    if request.method == 'POST':
+        nome = request.form['nome_categoria']
+        descricao = request.form['descricao_categoria']
+        pvp_categoria = request.form['pvp_categoria'] or None
+
+        cursor.execute("""
+            UPDATE categoria_produto 
+            SET nome_categoria = %s, descricao_categoria = %s, pvp_categoria = %s
+            WHERE cod_categoria = %s
+        """, (nome, descricao, pvp_categoria, cod))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        flash("Categoria atualizada com sucesso!", "sucesso")
+        return redirect(url_for('admin.categorias'))
+
+    cursor.close()
+    conn.close()
+    return render_template('editar_categoria.html', categoria=categoria, pvps=pvps)
+
+
+@admin_bp.route('/categorias/excluir/<int:cod>', methods=['POST'])
+@admin_required
+def excluir_categoria(cod):
+    """ Exclui uma categoria, se não estiver vinculada a produtos. """
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM categoria_produto WHERE cod_categoria = %s", (cod,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        flash("Categoria excluída com sucesso!", "sucesso")
+    except mysql.connector.Error as err:
+        flash(f"Erro ao excluir a categoria. Verifique se há produtos vinculados. Detalhes: {err}", "erro")
+    return redirect(url_for('admin.categorias'))
+
+
 
 # =====================================================================
 # SEÇÃO 6: REGISTRO DO BLUEPRINT E EXECUÇÃO
