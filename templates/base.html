@@ -38,19 +38,23 @@
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="" class="sidebar-link {% if 'produtos' in request.path %}active{% endif %}">
+                <a href="{{ url_for('admin.produtos') }}" class="sidebar-link {% if 'produtos' in request.path %}active{% endif %}">
                     <i class="fas fa-box-open"></i>
                     <span>Produtos</span>
                 </a>
-                <a href="" class="sidebar-link {% if 'categorias' in request.path %}active{% endif %}">
+                <a href="{{ url_for('admin.categorias') }}" class="sidebar-link {% if 'categorias' in request.path %}active{% endif %}">
                     <i class="fas fa-tags"></i>
                     <span>Categorias</span>
+                </a>
+                <a href="{{ url_for('admin.unidades') }}" class="sidebar-link {% if 'unidades' in request.path %}active{% endif %}">
+                    <i class="fas fa-ruler"></i>
+                    <span>Unidades</span>
                 </a>
                 <a href="{{ url_for('admin.usuarios') }}" class="sidebar-link {% if 'usuarios' in request.path %}active{% endif %}">
                     <i class="fas fa-tags"></i>
                     <span>Usuarios</span>
                 </a>
-                <a href="{{ url_for('admin.pvps') }}" class="sidebar-link {% if 'usuarios' in request.path %}active{% endif %}">
+                <a href="{{ url_for('admin.pvps') }}" class="sidebar-link {% if 'pvps' in request.path %}active{% endif %}">
                     <i class="fas fa-tags"></i>
                     <span>PVP</span>
                 </a>

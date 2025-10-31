@@ -27,6 +27,29 @@ db_config = {
     'database': 'caixa'  # Nome do banco de dados utilizado.
 }
 
+
+def table_has_column(table_name, column_name):
+    """Verifica se uma tabela possui determinada coluna no banco configurado.
+    Retorna True/False. Usa information_schema para checagem em tempo de execução.
+    """
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = %s AND table_name = %s AND column_name = %s",
+            (db_config['database'], table_name, column_name)
+        )
+        exists = cursor.fetchone()[0] > 0
+    except Exception:
+        exists = False
+    finally:
+        try:
+            cursor.close()
+            conn.close()
+        except Exception:
+            pass
+    return exists
+
 # =====================================================================
 # SEÇÃO 3: DECORADOR DE AUTENTICAÇÃO DE ADMIN
 # Garante que apenas usuários administradores logados possam acessar certas rotas.
@@ -94,7 +117,7 @@ def cadastro():
         
         # Insere o novo usuário no banco. Por padrão, tipo_usuario=2 (usuário comum) e conta_ativa=True.
         cursor.execute("""INSERT INTO usuario (nome_usuario, username_usuario, password_usuario, email_usuario, tipo_usuario, conta_ativa)
-                          VALUES (%s, %s, %s, %s, %s, %s)""", (nome, username, senha, email, 2, True))
+                          VALUES (%s, %s, %s, %s, %s, %s)""", (nome, username, senha, email, 1, True))
         conn.commit()  # Confirma a transação.
         cursor.close()
         conn.close()
@@ -603,6 +626,10 @@ def cadastrar_produto():
     cursor.execute("SELECT cod_pvp, nome_pvp FROM pvp WHERE ativo = TRUE ORDER BY nome_pvp ASC")
     pvps = cursor.fetchall()
 
+    # Detecta colunas em runtime para decidir como gravar a unidade
+    prod_has_cod_unidade = table_has_column('produto', 'cod_unidade')
+    prod_has_unidade_medida = False if prod_has_cod_unidade else table_has_column('produto', 'unidade_medida')
+
     if request.method == 'POST':
         nome = request.form['nome_produto']
         descricao = request.form.get('descricao_produto') or None
@@ -614,15 +641,43 @@ def cadastrar_produto():
         cod_categoria = request.form.get('cod_categoria') or None
         cod_pvp = request.form.get('cod_pvp') or None
 
-        # Inserir produto
-        query = """
-            INSERT INTO produto (nome_produto, descricao_produto, preco_compra, preco_venda,
-                                 quantidade, cod_unidade, codigo_barras, ativo, cod_categoria, cod_pvp)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """
         cursor_insert = conn.cursor()
-        cursor_insert.execute(query, (nome, descricao, preco_compra, preco_venda, quantidade,
-                                      cod_unidade, codigo_barras, True, cod_categoria, cod_pvp))
+        if prod_has_cod_unidade:
+            # Insere usando a FK cod_unidade
+            query = """
+                INSERT INTO produto (nome_produto, descricao_produto, preco_compra, preco_venda,
+                                     quantidade, cod_unidade, codigo_barras, ativo, cod_categoria, cod_pvp)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor_insert.execute(query, (nome, descricao, preco_compra, preco_venda, quantidade,
+                                          cod_unidade, codigo_barras, True, cod_categoria, cod_pvp))
+        elif prod_has_unidade_medida:
+            # Converte o cod_unidade selecionado para a sigla antes de inserir no campo unidade_medida
+            unidade_sigla = None
+            if cod_unidade:
+                tmp = conn.cursor()
+                tmp.execute("SELECT sigla_unidade FROM unidade_medida WHERE cod_unidade = %s", (cod_unidade,))
+                r = tmp.fetchone()
+                tmp.close()
+                unidade_sigla = r[0] if r else None
+
+            query = """
+                INSERT INTO produto (nome_produto, descricao_produto, preco_compra, preco_venda,
+                                     quantidade, unidade_medida, codigo_barras, ativo, cod_categoria, cod_pvp)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor_insert.execute(query, (nome, descricao, preco_compra, preco_venda, quantidade,
+                                          unidade_sigla, codigo_barras, True, cod_categoria, cod_pvp))
+        else:
+            # Não há coluna de unidade: grava sem campo de unidade
+            query = """
+                INSERT INTO produto (nome_produto, descricao_produto, preco_compra, preco_venda,
+                                     quantidade, codigo_barras, ativo, cod_categoria, cod_pvp)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor_insert.execute(query, (nome, descricao, preco_compra, preco_venda, quantidade,
+                                          codigo_barras, True, cod_categoria, cod_pvp))
+
         conn.commit()
         cursor_insert.close()
         cursor.close()
@@ -645,6 +700,20 @@ def editar_produto(cod):
     # Buscar produto, unidades, categorias e pvps
     cursor.execute("SELECT * FROM produto WHERE cod_produto = %s", (cod,))
     produto = cursor.fetchone()
+    # Detecta colunas para saber como ler/ajustar a unidade
+    prod_has_cod_unidade = table_has_column('produto', 'cod_unidade')
+    prod_has_unidade_medida = False if prod_has_cod_unidade else table_has_column('produto', 'unidade_medida')
+    # Se produto não tiver cod_unidade mas tiver unidade_medida (sigla),
+    # converte a sigla em cod_unidade para uso nos templates (pre-fill)
+    if produto and (not prod_has_cod_unidade) and prod_has_unidade_medida:
+        sigla = produto.get('unidade_medida') if isinstance(produto, dict) else None
+        if sigla:
+            tmp = conn.cursor()
+            tmp.execute("SELECT cod_unidade FROM unidade_medida WHERE sigla_unidade = %s", (sigla,))
+            r = tmp.fetchone()
+            tmp.close()
+            if r and isinstance(produto, dict):
+                produto['cod_unidade'] = r[0]
     cursor.execute("SELECT cod_unidade, sigla_unidade AS sigla, nome_unidade AS descricao FROM unidade_medida ORDER BY sigla_unidade ASC")
     unidades = cursor.fetchall()
     cursor.execute("SELECT cod_categoria, nome_categoria FROM categoria_produto ORDER BY nome_categoria ASC")
@@ -669,15 +738,45 @@ def editar_produto(cod):
         cod_categoria = request.form.get('cod_categoria') or None
         cod_pvp = request.form.get('cod_pvp') or None
 
-        update_query = """
-            UPDATE produto SET nome_produto=%s, descricao_produto=%s, preco_compra=%s,
-                                preco_venda=%s, quantidade=%s, cod_unidade=%s,
-                                codigo_barras=%s, cod_categoria=%s, cod_pvp=%s
-            WHERE cod_produto = %s
-        """
         cursor_update = conn.cursor()
-        cursor_update.execute(update_query, (nome, descricao, preco_compra, preco_venda,
-                                             quantidade, cod_unidade, codigo_barras, cod_categoria, cod_pvp, cod))
+        if prod_has_cod_unidade:
+            update_query = """
+                UPDATE produto SET nome_produto=%s, descricao_produto=%s, preco_compra=%s,
+                                    preco_venda=%s, quantidade=%s, cod_unidade=%s,
+                                    codigo_barras=%s, cod_categoria=%s, cod_pvp=%s
+                WHERE cod_produto = %s
+            """
+            cursor_update.execute(update_query, (nome, descricao, preco_compra, preco_venda,
+                                                 quantidade, cod_unidade, codigo_barras, cod_categoria, cod_pvp, cod))
+        elif prod_has_unidade_medida:
+            # Converte cod_unidade selecionado para sigla e atualiza campo unidade_medida
+            unidade_sigla = None
+            if cod_unidade:
+                tmp = conn.cursor()
+                tmp.execute("SELECT sigla_unidade FROM unidade_medida WHERE cod_unidade = %s", (cod_unidade,))
+                r = tmp.fetchone()
+                tmp.close()
+                unidade_sigla = r[0] if r else None
+
+            update_query = """
+                UPDATE produto SET nome_produto=%s, descricao_produto=%s, preco_compra=%s,
+                                    preco_venda=%s, quantidade=%s, unidade_medida=%s,
+                                    codigo_barras=%s, cod_categoria=%s, cod_pvp=%s
+                WHERE cod_produto = %s
+            """
+            cursor_update.execute(update_query, (nome, descricao, preco_compra, preco_venda,
+                                                 quantidade, unidade_sigla, codigo_barras, cod_categoria, cod_pvp, cod))
+        else:
+            # Sem coluna de unidade: atualiza sem esse campo
+            update_query = """
+                UPDATE produto SET nome_produto=%s, descricao_produto=%s, preco_compra=%s,
+                                    preco_venda=%s, quantidade=%s,
+                                    codigo_barras=%s, cod_categoria=%s, cod_pvp=%s
+                WHERE cod_produto = %s
+            """
+            cursor_update.execute(update_query, (nome, descricao, preco_compra, preco_venda,
+                                                 quantidade, codigo_barras, cod_categoria, cod_pvp, cod))
+
         conn.commit()
         cursor_update.close()
         cursor.close()
