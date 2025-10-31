@@ -1,3 +1,6 @@
+Dupla: Manuela Lopes Zickuhr e Vinícius Sombrio Fronza
+
+
 criar ambiente virtual:
 py -3 -m venv .venv
 
