@@ -474,6 +474,239 @@ def excluir_categoria(cod):
     return redirect(url_for('admin.categorias'))
 
 
+# --- CRUD para Unidades de Medida ---
+@admin_bp.route('/unidades')
+@admin_required
+def unidades():
+    """ Lista todas as unidades de medida. """
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT cod_unidade, sigla_unidade AS sigla, nome_unidade AS descricao FROM unidade_medida ORDER BY sigla_unidade ASC")
+    lista_unidades = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template('unidades.html', unidades=lista_unidades)
+
+
+@admin_bp.route('/unidades/cadastrar', methods=['GET', 'POST'])
+@admin_required
+def cadastrar_unidade():
+    """ Cadastra uma nova unidade de medida. """
+    if request.method == 'POST':
+        sigla = request.form['sigla'].strip().upper()
+        descricao = request.form.get('descricao') or None
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        # Evita duplicar siglas
+        cursor.execute("SELECT cod_unidade FROM unidade_medida WHERE sigla_unidade = %s", (sigla,))
+        if cursor.fetchone():
+            flash("Sigla já cadastrada.", "erro")
+            cursor.close()
+            conn.close()
+            return redirect(url_for('admin.unidades'))
+
+        cursor.execute("INSERT INTO unidade_medida (sigla_unidade, nome_unidade) VALUES (%s, %s)", (sigla, descricao))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        flash("Unidade de medida cadastrada com sucesso!", "sucesso")
+        return redirect(url_for('admin.unidades'))
+
+    return render_template('cadastrar_unidade.html')
+
+
+@admin_bp.route('/unidades/editar/<int:cod>', methods=['GET', 'POST'])
+@admin_required
+def editar_unidade(cod):
+    """ Edita uma unidade de medida. """
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT cod_unidade, nome_unidade, sigla_unidade FROM unidade_medida WHERE cod_unidade = %s", (cod,))
+    unidade = cursor.fetchone()
+    if not unidade:
+        cursor.close()
+        conn.close()
+        flash("Unidade não encontrada.", "erro")
+        return redirect(url_for('admin.unidades'))
+
+    if request.method == 'POST':
+        sigla = request.form['sigla'].strip()
+        nome = request.form['nome'].strip()
+        cursor.execute("UPDATE unidade_medida SET sigla_unidade=%s, nome_unidade=%s WHERE cod_unidade=%s", (sigla, nome, cod))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        flash("Unidade atualizada com sucesso!", "sucesso")
+        return redirect(url_for('admin.unidades'))
+
+    cursor.close()
+    conn.close()
+    return render_template('editar_unidade.html', unidade=unidade)
+
+
+@admin_bp.route('/unidades/excluir/<int:cod>', methods=['POST'])
+@admin_required
+def excluir_unidade(cod):
+    """ Exclui uma unidade, se não estiver em uso por produtos. """
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM unidade_medida WHERE cod_unidade = %s", (cod,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        flash("Unidade excluída com sucesso!", "sucesso")
+    except mysql.connector.Error as err:
+        flash(f"Erro ao excluir a unidade. Verifique se há produtos vinculados. Detalhes: {err}", "erro")
+    return redirect(url_for('admin.unidades'))
+
+
+# --- CRUD para Produtos ---
+@admin_bp.route('/produtos')
+@admin_required
+def produtos():
+    """ Lista todos os produtos com suas unidades, categorias e pvp. """
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT p.cod_produto, p.nome_produto, p.descricao_produto, p.preco_compra, p.preco_venda,
+               p.quantidade, p.codigo_barras, p.ativo, p.data_criacao,
+               u.sigla_unidade AS unidade_sigla, u.nome_unidade AS unidade_descricao,
+               c.nome_categoria AS categoria_nome,
+               pv.nome_pvp AS pvp_nome
+        FROM produto p
+        LEFT JOIN unidade_medida u ON p.cod_unidade = u.cod_unidade
+        LEFT JOIN categoria_produto c ON p.cod_categoria = c.cod_categoria
+        LEFT JOIN pvp pv ON p.cod_pvp = pv.cod_pvp
+        ORDER BY p.nome_produto ASC
+    """)
+    lista_produtos = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template('produtos.html', produtos=lista_produtos)
+
+
+@admin_bp.route('/produtos/cadastrar', methods=['GET', 'POST'])
+@admin_required
+def cadastrar_produto():
+    """ Cadastra um novo produto (usa cod_unidade). """
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    # Buscar unidades, categorias e pvps para popular selects
+    cursor.execute("SELECT cod_unidade, sigla_unidade AS sigla, nome_unidade AS descricao FROM unidade_medida ORDER BY sigla_unidade ASC")
+    unidades = cursor.fetchall()
+    cursor.execute("SELECT cod_categoria, nome_categoria FROM categoria_produto ORDER BY nome_categoria ASC")
+    categorias = cursor.fetchall()
+    cursor.execute("SELECT cod_pvp, nome_pvp FROM pvp WHERE ativo = TRUE ORDER BY nome_pvp ASC")
+    pvps = cursor.fetchall()
+
+    if request.method == 'POST':
+        nome = request.form['nome_produto']
+        descricao = request.form.get('descricao_produto') or None
+        preco_compra = request.form.get('preco_compra') or 0
+        preco_venda = request.form.get('preco_venda') or 0
+        quantidade = request.form.get('quantidade') or 0
+        cod_unidade = request.form.get('cod_unidade') or None
+        codigo_barras = request.form.get('codigo_barras') or None
+        cod_categoria = request.form.get('cod_categoria') or None
+        cod_pvp = request.form.get('cod_pvp') or None
+
+        # Inserir produto
+        query = """
+            INSERT INTO produto (nome_produto, descricao_produto, preco_compra, preco_venda,
+                                 quantidade, cod_unidade, codigo_barras, ativo, cod_categoria, cod_pvp)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor_insert = conn.cursor()
+        cursor_insert.execute(query, (nome, descricao, preco_compra, preco_venda, quantidade,
+                                      cod_unidade, codigo_barras, True, cod_categoria, cod_pvp))
+        conn.commit()
+        cursor_insert.close()
+        cursor.close()
+        conn.close()
+        flash("Produto cadastrado com sucesso!", "sucesso")
+        return redirect(url_for('admin.produtos'))
+
+    cursor.close()
+    conn.close()
+    return render_template('cadastrar_produto.html', unidades=unidades, categorias=categorias, pvps=pvps)
+
+
+@admin_bp.route('/produtos/editar/<int:cod>', methods=['GET', 'POST'])
+@admin_required
+def editar_produto(cod):
+    """ Edita um produto existente. """
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    # Buscar produto, unidades, categorias e pvps
+    cursor.execute("SELECT * FROM produto WHERE cod_produto = %s", (cod,))
+    produto = cursor.fetchone()
+    cursor.execute("SELECT cod_unidade, sigla_unidade AS sigla, nome_unidade AS descricao FROM unidade_medida ORDER BY sigla_unidade ASC")
+    unidades = cursor.fetchall()
+    cursor.execute("SELECT cod_categoria, nome_categoria FROM categoria_produto ORDER BY nome_categoria ASC")
+    categorias = cursor.fetchall()
+    cursor.execute("SELECT cod_pvp, nome_pvp FROM pvp WHERE ativo = TRUE ORDER BY nome_pvp ASC")
+    pvps = cursor.fetchall()
+
+    if not produto:
+        cursor.close()
+        conn.close()
+        flash("Produto não encontrado.", "erro")
+        return redirect(url_for('admin.produtos'))
+
+    if request.method == 'POST':
+        nome = request.form['nome_produto']
+        descricao = request.form.get('descricao_produto') or None
+        preco_compra = request.form.get('preco_compra') or 0
+        preco_venda = request.form.get('preco_venda') or 0
+        quantidade = request.form.get('quantidade') or 0
+        cod_unidade = request.form.get('cod_unidade') or None
+        codigo_barras = request.form.get('codigo_barras') or None
+        cod_categoria = request.form.get('cod_categoria') or None
+        cod_pvp = request.form.get('cod_pvp') or None
+
+        update_query = """
+            UPDATE produto SET nome_produto=%s, descricao_produto=%s, preco_compra=%s,
+                                preco_venda=%s, quantidade=%s, cod_unidade=%s,
+                                codigo_barras=%s, cod_categoria=%s, cod_pvp=%s
+            WHERE cod_produto = %s
+        """
+        cursor_update = conn.cursor()
+        cursor_update.execute(update_query, (nome, descricao, preco_compra, preco_venda,
+                                             quantidade, cod_unidade, codigo_barras, cod_categoria, cod_pvp, cod))
+        conn.commit()
+        cursor_update.close()
+        cursor.close()
+        conn.close()
+        flash("Produto atualizado com sucesso!", "sucesso")
+        return redirect(url_for('admin.produtos'))
+
+    cursor.close()
+    conn.close()
+    return render_template('editar_produto.html', produto=produto, unidades=unidades, categorias=categorias, pvps=pvps)
+
+
+@admin_bp.route('/produtos/excluir/<int:cod>', methods=['POST'])
+@admin_required
+def excluir_produto(cod):
+    """ Exclui um produto. """
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM produto WHERE cod_produto = %s", (cod,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        flash("Produto excluído com sucesso!", "sucesso")
+    except mysql.connector.Error as err:
+        flash(f"Erro ao excluir produto: {err}", "erro")
+    return redirect(url_for('admin.produtos'))
+
+
 
 # =====================================================================
 # SEÇÃO 6: REGISTRO DO BLUEPRINT E EXECUÇÃO

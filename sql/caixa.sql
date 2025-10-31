@@ -37,6 +37,20 @@ CREATE TABLE categoria_produto (
 
 
 -- 3. Tabela de Produtos
+-- Tabela de Unidades de Medida
+
+CREATE TABLE `unidade_medida` (
+  `cod_unidade` int(11) NOT NULL,
+  `nome_unidade` varchar(50) NOT NULL,
+  `sigla_unidade` varchar(10) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Despejando dados para a tabela `unidade_medida`
+--
+
+
+
 CREATE TABLE produto (
     cod_produto INT AUTO_INCREMENT PRIMARY KEY,
     nome_produto VARCHAR(100) NOT NULL,
@@ -44,14 +58,15 @@ CREATE TABLE produto (
     preco_compra DECIMAL(10,2) NOT NULL,  -- Preço de compra
     preco_venda DECIMAL(10,2) NOT NULL,   -- Preço de venda
     quantidade INT NOT NULL DEFAULT 0,    -- Quantidade em estoque
-    unidade_medida VARCHAR(20) NOT NULL,  -- Unidade de medida
+    cod_unidade INT NOT NULL,              -- Referência para unidade de medida
     codigo_barras VARCHAR(13) UNIQUE NOT NULL,  -- Código de barras
     ativo BOOLEAN NOT NULL DEFAULT TRUE,  -- Produto ativo ou não
     cod_categoria INT NOT NULL,           -- Categoria do produto
     cod_pvp INT NOT NULL,                 -- Relacionamento com PVP
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (cod_categoria) REFERENCES categoria_produto(cod_categoria),  -- Relacionamento com a categoria
-    FOREIGN KEY (cod_pvp) REFERENCES pvp(cod_pvp)  -- Relacionamento com o PVP
+    FOREIGN KEY (cod_pvp) REFERENCES pvp(cod_pvp),  -- Relacionamento com o PVP
+    FOREIGN KEY (cod_unidade) REFERENCES unidade_medida(cod_unidade)
 );
 
 
@@ -159,3 +174,32 @@ INSERT INTO categoria_produto (nome_categoria, pvp_categoria, descricao_categori
 INSERT INTO categoria_produto (nome_categoria, pvp_categoria, descricao_categoria) VALUES ('Infantil', 18, 'Fraldas, papinhas, produtos para bebês e crianças.');
 INSERT INTO categoria_produto (nome_categoria, pvp_categoria, descricao_categoria) VALUES ('Mercearia', 19, 'Óleos, temperos, molhos, farinhas especiais.');
 INSERT INTO categoria_produto (nome_categoria, pvp_categoria, descricao_categoria) VALUES ('Importados', 20, 'Produtos estrangeiros, gourmet ou diferenciados.');
+
+-- Bloco 3: Inserção de Unidades de Medida (valores iniciais)
+INSERT INTO `unidade_medida` (`cod_unidade`, `nome_unidade`, `sigla_unidade`) VALUES
+(1, 'Quilograma', 'kg'),
+(2, 'Grama', 'g'),
+(3, 'Litro', 'L'),
+(4, 'Mililitro', 'mL'),
+(5, 'Metro', 'm'),
+(6, 'Centímetro', 'cm'),
+(7, 'Unidade', 'un'),
+(8, 'Caixa', 'cx'),
+(9, 'Pacote', 'pct'),
+(10, 'Dúzia', 'dz'),
+(11, 'Par', 'par'),
+(12, 'Tonelada', 't'),
+(13, 'Galão', 'gal'),
+(14, 'Barril', 'bbl'),
+(15, 'Fardo', 'fd'),
+(16, 'Cartela', 'ctl'),
+(17, 'Frasco', 'fr'),
+(18, 'Garrafa', 'gf'),
+(19, 'Lata', 'lt'),
+(20, 'Saco', 'sc'),
+(21, 'Envelope', 'env'),
+(22, 'Bandeja', 'bdj'),
+(23, 'Pote', 'pt'),
+(24, 'Vidro', 'vd'),
+(25, 'Bloco', 'bl'),
+(26, 'Kit', 'kit');

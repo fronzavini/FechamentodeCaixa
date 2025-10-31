@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Produtos{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-800 mb-6">Produtos</h2>
+
+<div class="mb-4">
+    <a href="{{ url_for('admin.cadastrar_produto') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Novo Produto</a>
+</div>
+
+<div class="bg-white p-6 rounded shadow">
+    <table class="w-full table-auto">
+        <thead>
+            <tr class="text-left">
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Unidade</th>
+                <th>Quantidade</th>
+                <th>Preço Venda</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in produtos %}
+            <tr class="border-t">
+                <td>{{ p.nome_produto }}</td>
+                <td>{{ p.categoria_nome or '-' }}</td>
+                <td>{{ p.unidade_sigla or '-' }}</td>
+                <td>{{ p.quantidade }}</td>
+                <td>{{ p.preco_venda }}</td>
+                <td>
+                    <a href="{{ url_for('admin.editar_produto', cod=p.cod_produto) }}" class="text-blue-600">Editar</a>
+                    <form action="{{ url_for('admin.excluir_produto', cod=p.cod_produto) }}" method="POST" style="display:inline-block;margin-left:8px;">
+                        <button type="submit" class="text-red-600 bg-transparent border-0">Excluir</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

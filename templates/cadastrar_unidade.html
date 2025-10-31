@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastrar Unidade de Medida{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-800 mb-6">Cadastrar Unidade de Medida</h2>
+
+<div class="bg-white p-8 rounded-lg shadow-md max-w-2xl mx-auto">
+    <form action="{{ url_for('admin.cadastrar_unidade') }}" method="POST">
+        <div class="space-y-6">
+            <!-- Sigla -->
+            <div>
+                <label for="sigla" class="block text-sm font-medium text-gray-700 mb-1">Sigla</label>
+                <input type="text" name="sigla" id="sigla" maxlength="10" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                              focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <!-- Descrição -->
+            <div>
+                <label for="descricao" class="block text-sm font-medium text-gray-700 mb-1">Descrição (opcional)</label>
+                <input type="text" name="descricao" id="descricao" maxlength="100"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                              focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            </div>
+        </div>
+
+        <div class="mt-8 flex justify-end space-x-4">
+            <a href="{{ url_for('admin.unidades') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Voltar</a>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Salvar Unidade</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

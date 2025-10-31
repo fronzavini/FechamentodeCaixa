@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Produto{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-800 mb-6">Editar Produto: <span class="text-blue-600">{{ produto.nome_produto }}</span></h2>
+
+<div class="bg-white p-8 rounded-lg shadow-md max-w-3xl mx-auto">
+    <form action="{{ url_for('admin.editar_produto', cod=produto.cod_produto) }}" method="POST">
+        <div class="grid grid-cols-1 gap-6">
+            <div>
+                <label for="nome_produto" class="block text-sm font-medium text-gray-700 mb-1">Nome do Produto</label>
+                <input type="text" name="nome_produto" id="nome_produto" required value="{{ produto.nome_produto }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label for="descricao_produto" class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                <textarea name="descricao_produto" id="descricao_produto" rows="3"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">{{ produto.descricao_produto }}</textarea>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label for="preco_compra" class="block text-sm font-medium text-gray-700 mb-1">Preço Compra</label>
+                    <input type="number" step="0.01" name="preco_compra" id="preco_compra" value="{{ produto.preco_compra }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+                <div>
+                    <label for="preco_venda" class="block text-sm font-medium text-gray-700 mb-1">Preço Venda</label>
+                    <input type="number" step="0.01" name="preco_venda" id="preco_venda" value="{{ produto.preco_venda }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+                <div>
+                    <label for="quantidade" class="block text-sm font-medium text-gray-700 mb-1">Quantidade</label>
+                    <input type="number" name="quantidade" id="quantidade" value="{{ produto.quantidade }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label for="cod_unidade" class="block text-sm font-medium text-gray-700 mb-1">Unidade de Medida</label>
+                    <select name="cod_unidade" id="cod_unidade" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        <option value="">-- selecione --</option>
+                        {% for u in unidades %}
+                        <option value="{{ u.cod_unidade }}" {% if produto and produto.cod_unidade == u.cod_unidade %}selected{% endif %}>{{ u.sigla }}{% if u.descricao %} - {{ u.descricao }}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="codigo_barras" class="block text-sm font-medium text-gray-700 mb-1">Código de Barras</label>
+                    <input type="text" name="codigo_barras" id="codigo_barras" value="{{ produto.codigo_barras }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+
+                <div>
+                    <label for="cod_categoria" class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                    <select name="cod_categoria" id="cod_categoria" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        <option value="">-- selecione --</option>
+                        {% for c in categorias %}
+                        <option value="{{ c.cod_categoria }}" {% if produto and produto.cod_categoria == c.cod_categoria %}selected{% endif %}>{{ c.nome_categoria }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label for="cod_pvp" class="block text-sm font-medium text-gray-700 mb-1">PVP</label>
+                <select name="cod_pvp" id="cod_pvp" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    <option value="">-- selecione --</option>
+                    {% for p in pvps %}
+                    <option value="{{ p.cod_pvp }}" {% if produto and produto.cod_pvp == p.cod_pvp %}selected{% endif %}>{{ p.nome_pvp }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div>
+
+        <div class="mt-8 flex justify-end space-x-4">
+            <a href="{{ url_for('admin.produtos') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Voltar</a>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Salvar Alterações</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

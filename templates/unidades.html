@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Unidades de Medida{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-800 mb-6">Unidades de Medida</h2>
+
+<div class="mb-4">
+    <a href="{{ url_for('admin.cadastrar_unidade') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Nova Unidade</a>
+</div>
+
+<div class="bg-white p-6 rounded shadow">
+    <table class="w-full table-auto">
+        <thead>
+            <tr class="text-left">
+                <th>Sigla</th>
+                <th>Descrição</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in unidades %}
+            <tr class="border-t">
+                <td>{{ u.sigla }}</td>
+                <td>{{ u.descricao }}</td>
+                <td>
+                    <a href="{{ url_for('admin.editar_unidade', cod=u.cod_unidade) }}" class="text-blue-600">Editar</a>
+                    <form action="{{ url_for('admin.excluir_unidade', cod=u.cod_unidade) }}" method="POST" style="display:inline-block;margin-left:8px;">
+                        <button type="submit" class="text-red-600 bg-transparent border-0">Excluir</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
